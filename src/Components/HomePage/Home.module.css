@@ -1,0 +1,155 @@
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcomeSection {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(to right, #2b86e2, #4f73f1);
+  border-radius: 15px;
+  color: white;
+}
+
+.welcomeTitle {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.welcomeMessage {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.featuredSection {
+  margin-top: 2rem;
+}
+
+.featuredTitle {
+  font-size: 2rem;
+  color: #2b86e2;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.bookGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.bookCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.bookCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.bookCover {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.defaultCover {
+  width: 100%;
+  height: 300px;
+  background: #2b86e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: white;
+}
+
+.bookInfo {
+  padding: 1.5rem;
+}
+
+.bookTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.bookAuthor {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.bookGenre {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: rgba(43, 134, 226, 0.1);
+  color: #2b86e2;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.bookDescription {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.viewButton {
+  width: 100%;
+  padding: 0.8rem;
+  background: #2b86e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.viewButton:hover {
+  background: #4f73f1;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.2rem;
+  color: #2b86e2;
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  color: #ff4444;
+  text-align: center;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+
+  .bookGrid {
+    grid-template-columns: 1fr;
+  }
+}

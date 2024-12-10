@@ -1,0 +1,201 @@
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    color: #2b86e2;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .statusFilters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .filterButton {
+    padding: 0.8rem 1.5rem;
+    border: 2px solid #2b86e2;
+    border-radius: 8px;
+    background: transparent;
+    color: #2b86e2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+  
+  .filterButton:hover {
+    background: rgba(43, 134, 226, 0.1);
+  }
+  
+  .filterButton.active {
+    background: #2b86e2;
+    color: white;
+  }
+  
+  .booksGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .bookCard {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .bookCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .bookCover {
+    width: 100%;
+    height: 200px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .coverImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .defaultCover {
+    font-size: 3rem;
+    color: #2b86e2;
+  }
+  
+  .bookInfo {
+    padding: 1.5rem;
+  }
+  
+  .bookTitle {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .bookAuthor {
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+  
+  .bookGenre {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    background: rgba(43, 134, 226, 0.1);
+    color: #2b86e2;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .statusSelect {
+    margin: 1rem 0;
+  }
+  
+  .statusSelect select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .cardActions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .viewButton, .removeButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .viewButton {
+    background: #2b86e2;
+    color: white;
+  }
+  
+  .viewButton:hover {
+    background: #4f73f1;
+  }
+  
+  .removeButton {
+    background: #ff4444;
+    color: white;
+  }
+  
+  .removeButton:hover {
+    background: #ff6666;
+  }
+  
+  .noBooks {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+  }
+  
+  .loading {
+    color: #2b86e2;
+  }
+  
+  .error {
+    color: #ff4444;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 2rem;
+    }
+  
+    .statusFilters {
+      flex-direction: column;
+      padding: 0 1rem;
+    }
+  
+    .filterButton {
+      width: 100%;
+    }
+  
+    .cardActions {
+      flex-direction: column;
+    }
+  }
