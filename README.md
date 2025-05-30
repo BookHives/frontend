@@ -6,6 +6,8 @@
 
 BookHive is a comprehensive digital library management system designed to provide users with an intuitive platform for discovering, reviewing, and managing books. The application serves both regular users and librarians, offering features for book browsing, personal reading lists, reviews, and administrative book management.
 
+**Live Application:** [https://bookhive-frontend-1d36e543d26f.herokuapp.com/](https://bookhive-frontend-1d36e543d26f.herokuapp.com/)
+
 The platform integrates with Google OAuth for secure authentication and provides a clean, modern interface for:
 
 * Browsing and searching the book collection
@@ -81,7 +83,7 @@ npm install
    * Select Web application
    * Add authorized JavaScript origins:
      * http://localhost:3000 (for development)
-     * https://your-production-domain.com (for production)
+     * https://bookhive-frontend-1d36e543d26f.herokuapp.com (for production)
    * Add authorized redirect URIs if needed
    * Note your Client ID
 
@@ -102,7 +104,7 @@ npm start
 
 #### Step 6: Open the Application
 
-Navigate to [http://localhost:3000](http://localhost:3000) in your browser
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser for local development, or visit the live application at [https://bookhive-frontend-1d36e543d26f.herokuapp.com/](https://bookhive-frontend-1d36e543d26f.herokuapp.com/)
 
 ## Project Structure
 
@@ -196,8 +198,35 @@ Here are the key functions that are crucial to the application's operation:
 ```javascript
 // Processes Google OAuth response and creates user session
 const handleGoogleLoginSuccess = async (credentialResponse) => {
-  const decoded = jwtDecode(credentialResponse.credential);
-  // Creates user data and establishes session
+  try {
+    const decoded = jwtDecode(credentialResponse.credential);
+    
+    const userData = {
+      username: decoded.email.split('@')[0],
+      email: decoded.email,
+      password: `google_${Date.now()}`,
+      is_librarian: 0,
+      profile_image: decoded.picture || null,
+    };
+
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/users/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+    localStorage.setItem('user', JSON.stringify({
+      user_id: data.user.user_id,
+      username: data.user.username,
+      is_librarian: data.user.is_librarian,
+      email: data.user.email
+    }));
+
+    navigate('/home');
+  } catch (error) {
+    setError('An error occurred during login. Please try again.');
+  }
 }
 ```
 
@@ -209,6 +238,9 @@ const handleGoogleLoginSuccess = async (credentialResponse) => {
 // Fetches all books from the API
 const fetchAllBooks = async () => {
   const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/books/');
+  if (!response.ok) {
+    throw new Error('Failed to fetch books');
+  }
   const data = await response.json();
   setBooks(data);
 }
@@ -216,8 +248,10 @@ const fetchAllBooks = async () => {
 // Filters books by genre
 const handleGenreSelect = async (genre) => {
   const response = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/books/search/?q=${genre}`);
-  const data = await response.json();
-  setBooks(data);
+  if (response.ok) {
+    const data = await response.json();
+    setBooks(data);
+  }
 }
 ```
 
@@ -228,46 +262,82 @@ const handleGenreSelect = async (genre) => {
 ```javascript
 // Fetches complete book data including reviews
 const fetchBookData = async () => {
-  const response = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/books/${bookId}/`);
-  const data = await response.json();
-  setBookData(data);
-}
+  try {
+    const response = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/books/${bookId}/`);
+    if (response.ok) {
+      const data = await response.json();
+      setBookData(data);
+    }
+  } catch (error) {
+    console.error('Error fetching book data:', error);
+  }
+};
 
 // Submits new review with rating
 const handleReviewSubmit = async (e) => {
-  const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/reviews/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: user.user_id,
-      book_id: bookId,
-      rating: newReview.rating,
-      review_text: newReview.review_text
-    }),
-  });
-}
+  e.preventDefault();
+  try {
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/reviews/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        book_id: bookId,
+        rating: newReview.rating,
+        review_text: newReview.review_text
+      }),
+    });
+
+    if (response.ok) {
+      const updatedData = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/books/${bookId}/`);
+      const newData = await updatedData.json();
+      setBookData(newData);
+      setNewReview({ rating: 5, review_text: '' });
+    }
+  } catch (error) {
+    console.error('Error submitting review:', error);
+  }
+};
 
 // Deletes a review (librarian only)
 const handleDeleteReview = async (reviewId) => {
-  const response = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/reviews/${reviewId}/delete/`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: user.user_id })
-  });
-}
+  try {
+    const response = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/reviews/${reviewId}/delete/`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.user_id })
+    });
+
+    if (response.ok) {
+      const updatedData = await fetch(`https://bookhive-90e4e8826675.herokuapp.com/api/books/${bookId}/`);
+      const newData = await updatedData.json();
+      setBookData(newData);
+    }
+  } catch (error) {
+    console.error('Error deleting review:', error);
+  }
+};
 
 // Adds book to user's favorites
 const addToFavorites = async () => {
-  const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/favorites/add/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: user.user_id,
-      book_id: bookId,
-      reading_status: 'WANT_TO_READ'
-    }),
-  });
-}
+  try {
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/favorites/add/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        book_id: bookId,
+        reading_status: 'WANT_TO_READ'
+      }),
+    });
+
+    if (response.ok) {
+      alert('Added to favorites!');
+    }
+  } catch (error) {
+    console.error('Error adding to favorites:', error);
+  }
+};
 ```
 
 ### Favorites Management
@@ -277,35 +347,60 @@ const addToFavorites = async () => {
 ```javascript
 // Fetches user's favorite books with optional status filtering
 const fetchFavorites = async () => {
-  let url = `https://bookhive-90e4e8826675.herokuapp.com/api/users/${user.user_id}/favorites/`;
-  if (activeStatus !== 'ALL') {
-    url = `https://bookhive-90e4e8826675.herokuapp.com/api/users/${user.user_id}/reading/${activeStatus}/`;
+  try {
+    setLoading(true);
+    let url = `https://bookhive-90e4e8826675.herokuapp.com/api/users/${user.user_id}/favorites/`;
+    
+    if (activeStatus !== 'ALL') {
+      url = `https://bookhive-90e4e8826675.herokuapp.com/api/users/${user.user_id}/reading/${activeStatus}/`;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch favorites');
+    
+    const data = await response.json();
+    setFavorites(data);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
   }
-  const response = await fetch(url);
-  const data = await response.json();
-  setFavorites(data);
-}
+};
 
 // Updates reading status for a book
 const updateReadingStatus = async (bookId, newStatus) => {
-  const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/favorites/status/update/', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: user.user_id,
-      book_id: bookId,
-      reading_status: newStatus
-    }),
-  });
-}
+  try {
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/favorites/status/update/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        book_id: bookId,
+        reading_status: newStatus
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to update status');
+    fetchFavorites();
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
 // Removes book from favorites
 const removeFavorite = async (bookId) => {
-  const response = await fetch(
-    `https://bookhive-90e4e8826675.herokuapp.com/api/favorites/${user.user_id}/${bookId}/remove/`,
-    { method: 'DELETE' }
-  );
-}
+  try {
+    const response = await fetch(
+      `https://bookhive-90e4e8826675.herokuapp.com/api/favorites/${user.user_id}/${bookId}/remove/`,
+      { method: 'DELETE' }
+    );
+
+    if (!response.ok) throw new Error('Failed to remove favorite');
+    fetchFavorites();
+  } catch (err) {
+    setError(err.message);
+  }
+};
 ```
 
 ### Administrative Functions
@@ -315,15 +410,37 @@ const removeFavorite = async (bookId) => {
 ```javascript
 // Creates new book entry (librarian only)
 const handleSubmit = async (e) => {
-  const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/books/create/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...newBook,
-      user_id: user.user_id
-    }),
-  });
-}
+  e.preventDefault();
+  try {
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/books/create/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...newBook,
+        user_id: user.user_id
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setMessage('Book created successfully!');
+      setNewBook({
+        title: '',
+        author: '',
+        description: '',
+        genre: '',
+        published_date: '',
+        cover_image: '',
+        available_copies: 1
+      });
+    } else {
+      setMessage(data.error || 'Failed to create book');
+    }
+  } catch (err) {
+    setMessage('Error creating book: ' + err.message);
+  }
+};
 ```
 
 ### Navigation and Session Management
@@ -333,16 +450,21 @@ const handleSubmit = async (e) => {
 ```javascript
 // Handles user logout and session cleanup
 const handleLogout = async () => {
-  const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/users/logout/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: user.user_id }),
-  });
-  if (response.ok) {
-    localStorage.removeItem('user');
-    navigate('/');
+  try {
+    const response = await fetch('https://bookhive-90e4e8826675.herokuapp.com/api/users/logout/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.user_id }),
+    });
+
+    if (response.ok) {
+      localStorage.removeItem('user');
+      navigate('/');
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
   }
-}
+};
 ```
 
 ### Route Protection
@@ -377,12 +499,13 @@ const LibrarianRoute = ({ children }) => {
 ### Regular User Experience
 
 **1. Authentication**
-* Users sign in using their Google account credentials
+* Visit [https://bookhive-frontend-1d36e543d26f.herokuapp.com/](https://bookhive-frontend-1d36e543d26f.herokuapp.com/)
+* Sign in using Google account credentials through the OAuth interface
 * The application requests basic profile information and email access
 * Upon successful authentication, users are redirected to the home page
 
 **2. Browse Books**
-* The home page displays featured books from the collection
+* The home page displays featured books randomly selected from the collection
 * Users can navigate to the Library to view the complete book collection
 * Books can be filtered by genre (Classic, Non-Fiction, Fantasy)
 * Each book card displays title, author, genre, description, and availability
@@ -434,6 +557,7 @@ The application uses Google OAuth 2.0 for secure user authentication:
 * **Automatic Account Creation**: New users are automatically registered on first login
 * **Session Management**: User sessions are maintained using localStorage
 * **Role-Based Access**: The system differentiates between regular users and librarians
+* **Client ID Configuration**: Uses Google OAuth client ID `567112089666-3hjf1cqcgvk1n40s4uvj6o0n44pn8tv5.apps.googleusercontent.com`
 
 ### Book Management
 
@@ -441,11 +565,13 @@ The application uses Google OAuth 2.0 for secure user authentication:
 * Books are stored with comprehensive metadata including title, author, genre, description, publication date, and cover images
 * The system supports three main genres: Classic, Non-Fiction, and Fantasy
 * Each book tracks available copies for potential lending functionality
+* Book covers are displayed with fallback options for missing images
 
 #### Search and Filtering
 * Users can filter books by genre using dedicated filter buttons
 * The search functionality queries the backend API for relevant results
 * Books are displayed in a responsive grid layout with consistent card design
+* "All Books" option returns the complete collection
 
 ### Review and Rating System
 
@@ -453,11 +579,13 @@ The application uses Google OAuth 2.0 for secure user authentication:
 * Users can submit text reviews with corresponding 1-5 star ratings
 * Reviews are tied to user accounts and display submission timestamps
 * The review system encourages community engagement and book discovery
+* Star ratings are displayed visually using React Icons
 
 #### Content Moderation
 * Librarians have the ability to delete inappropriate or spam reviews
 * Review deletion is performed through API calls that remove content from the database
 * The moderation system helps maintain quality community standards
+* Only librarian accounts can access deletion functionality
 
 ### Personal Reading Management
 
@@ -465,6 +593,7 @@ The application uses Google OAuth 2.0 for secure user authentication:
 * Users can add books to their personal reading list from any book detail page
 * The favorites system supports multiple reading statuses for organization
 * Status updates are immediately reflected in the user interface
+* Books are added with default status "WANT_TO_READ"
 
 #### Reading Status Tracking
 * **Want to Read**: Books the user intends to read in the future
@@ -475,6 +604,7 @@ The application uses Google OAuth 2.0 for secure user authentication:
 * Users can filter their reading list by status for easy organization
 * Books can be removed from the reading list entirely
 * Status changes are persisted to the backend database
+* Visual indicators show current reading status
 
 ## ---
 
@@ -484,28 +614,47 @@ The application integrates with a backend API hosted at `https://bookhive-90e4e8
 
 ### Authentication Endpoints
 * `POST /api/users/login/` - User authentication and registration
+  * Creates user account if not exists
+  * Returns user data including librarian status
 * `POST /api/users/logout/` - User session termination
+  * Cleans up server-side session data
 
 ### Book Management Endpoints
 * `GET /api/books/` - Retrieve all books in the collection
+  * Returns complete book metadata for library display
 * `GET /api/books/search/?q={query}` - Search books by query string
+  * Supports genre-based filtering
 * `GET /api/books/{bookId}/` - Get detailed book information with reviews
+  * Includes all associated reviews and ratings
 * `POST /api/books/create/` - Create new book (librarian only)
+  * Requires authentication and librarian privileges
 
 ### Review System Endpoints
 * `POST /api/reviews/` - Submit new book review
+  * Requires user authentication
+  * Accepts rating (1-5) and review text
 * `DELETE /api/reviews/{reviewId}/delete/` - Delete review (librarian only)
+  * Requires librarian authentication
 
 ### Favorites Management Endpoints
 * `GET /api/users/{userId}/favorites/` - Get user's favorite books
+  * Returns all favorited books with metadata
 * `GET /api/users/{userId}/reading/{status}/` - Get books by reading status
+  * Filters by specific reading status
 * `POST /api/favorites/add/` - Add book to favorites
+  * Sets initial reading status
 * `PUT /api/favorites/status/update/` - Update reading status
+  * Changes between Want to Read, Currently Reading, Already Read
 * `DELETE /api/favorites/{userId}/{bookId}/remove/` - Remove from favorites
+  * Completely removes book from user's list
 
 ## ---
 
 ## Deployment Configuration
+
+### Production Deployment
+
+The application is deployed on Heroku at: [https://bookhive-frontend-1d36e543d26f.herokuapp.com/](https://bookhive-frontend-1d36e543d26f.herokuapp.com/)
 
 ### Production Server
 
@@ -526,14 +675,16 @@ app.get('*', function(req, res) {
 
 const port = process.env.PORT || 3000;
 app.listen(port);
+
+console.log(`Server is up and running on port ${port}`);
 ```
 
 ### Build Scripts
 
 The `package.json` includes deployment-ready scripts:
 
-* `npm start` - Runs the production server
-* `npm run build` - Creates optimized production build
+* `npm start` - Runs the production server (points to server.js)
+* `npm run build` - Creates optimized production build using react-scripts
 * `npm run heroku-postbuild` - Automatic build process for Heroku deployment
 
 ### Environment Configuration
@@ -541,6 +692,21 @@ The `package.json` includes deployment-ready scripts:
 * Node.js version: 18.x
 * npm version: 9.x
 * Configured for Heroku deployment with automatic build process
+* Static JSON configuration for client-side routing support
+
+### Heroku Configuration
+
+The application includes a `static.json` file for proper routing:
+
+```json
+{
+  "root": "build/",
+  "routes": {
+    "/**": "index.html"
+  },
+  "https_only": true
+}
+```
 
 ## ---
 
@@ -554,73 +720,109 @@ This project follows standard React development practices and welcomes contribut
 * Maintain consistent styling using CSS modules
 * Implement proper error handling for API calls
 * Write descriptive commit messages and documentation
+* Use functional React components with hooks
 
 ### Code Quality Standards
 
-* Use functional React components with hooks
-* Implement proper TypeScript types where applicable
+* Use modern JavaScript ES6+ features
+* Implement proper error boundaries and loading states
 * Maintain responsive design principles
 * Follow accessibility best practices
+* Consistent naming conventions for components and functions
 
 ### Testing Recommendations
 
 * Implement unit tests for utility functions
 * Add integration tests for API interactions
-* Include component tests for UI elements
+* Include component tests for UI elements using React Testing Library
 * Consider end-to-end testing for critical user workflows
+* Test authentication flows thoroughly
 
 ## Next Steps for Future Development
 
 ### Enhanced Features
 
 **1. Advanced Search and Filtering**
-* Implement full-text search across book content
-* Add advanced filtering options (publication year, rating ranges)
-* Create tag-based categorization system
-* Add sorting options (popularity, rating, recent additions)
+* Implement full-text search across book content and descriptions
+* Add advanced filtering options (publication year ranges, rating ranges)
+* Create tag-based categorization system beyond current genres
+* Add sorting options (popularity, average rating, recent additions)
+* Implement autocomplete for search functionality
 
 **2. Social Features**
-* User profiles with reading statistics
-* Book recommendations based on reading history
-* Discussion forums for book clubs
+* User profiles with reading statistics and achievements
+* Book recommendations based on reading history and ratings
+* Discussion forums for book clubs and reading groups
 * Social sharing of reviews and reading lists
+* Following other users and seeing their reading activity
 
 **3. Library Management**
-* Book lending/checkout system with due dates
-* Inventory management for physical copies
-* Reservation system for popular books
-* Integration with library catalog systems
+* Book lending/checkout system with due dates and notifications
+* Inventory management for physical copies with barcode scanning
+* Reservation system for popular books with waitlists
+* Integration with existing library catalog systems
+* Late fee calculation and management
 
 ### Technical Improvements
 
 **1. Performance Optimization**
-* Implement lazy loading for book images
-* Add pagination for large book collections
-* Optimize API calls with caching strategies
+* Implement lazy loading for book images and components
+* Add pagination for large book collections to improve load times
+* Optimize API calls with caching strategies using React Query
 * Implement service worker for offline functionality
+* Add image optimization and compression
 
 **2. Enhanced User Experience**
-* Dark mode theme option
+* Dark mode theme option with user preference storage
 * Accessibility improvements (screen reader support, keyboard navigation)
 * Mobile app development using React Native
-* Progressive Web App (PWA) features
+* Progressive Web App (PWA) features with installable app
+* Improved responsive design for tablets and mobile devices
 
 **3. Administrative Tools**
-* Bulk book import functionality
-* User management and moderation tools
-* Analytics dashboard for usage statistics
-* Automated content moderation systems
+* Bulk book import functionality from CSV or external APIs
+* User management and moderation tools for librarians
+* Analytics dashboard for usage statistics and popular books
+* Automated content moderation systems for reviews
+* Book recommendation engine management
 
 ### Integration Possibilities
 
 **1. External APIs**
-* Goodreads API for book metadata
-* Google Books API for cover images and descriptions
-* ISBN lookup services for book verification
-* Library of Congress integration
+* [Goodreads API](https://www.goodreads.com/api) for book metadata and reviews
+* [Google Books API](https://developers.google.com/books) for cover images and descriptions
+* [Open Library API](https://openlibrary.org/developers/api) for comprehensive book data
+* ISBN lookup services for automatic book verification
+* Library of Congress integration for authoritative metadata
 
 **2. Third-Party Services**
-* Email notifications for new books and updates
-* SMS reminders for due dates
-* Integration with popular e-reader platforms
-* Social media integration for sharing
+* Email notifications for new books, due dates, and updates
+* SMS reminders for due dates and reservations
+* Integration with popular e-reader platforms (Kindle, Kobo)
+* Social media integration for sharing reading progress
+* Payment processing for late fees or book purchases
+
+**3. Educational Features**
+* Reading challenges and goal tracking
+* Book clubs with scheduled discussions
+* Author information and biography integration
+* Reading level recommendations for younger users
+* Integration with educational platforms for assigned reading
+
+### Security and Scalability
+
+**1. Enhanced Security**
+* Implement rate limiting for API endpoints
+* Add input validation and sanitization
+* Secure file upload handling for book covers
+* Two-factor authentication option
+* Audit logging for administrative actions
+
+**2. Scalability Improvements**
+* Database optimization and indexing
+* CDN integration for static assets
+* Microservices architecture for large-scale deployment
+* Containerization with Docker
+* Load balancing for high traffic scenarios
+
+This comprehensive README provides everything needed for developers to understand, set up, and contribute to the BookHive digital library management system. The application offers a solid foundation for library management while providing extensive opportunities for future enhancement and customization.
