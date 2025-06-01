@@ -11,6 +11,8 @@
   align-items: center;
   justify-content: center;
   font-family: 'Poppins', sans-serif;
+  min-height: 500px;
+  transition: all 0.3s ease;
 }
 
 .brandSection {
@@ -55,26 +57,242 @@
   font-size: 14px;
 }
 
+/* Login Options Container */
+.loginOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
 .googleLoginWrapper {
-  margin: 20px 0;
+  margin: 0;
   display: flex;
   justify-content: center;
 }
 
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.divider span {
+  background: white;
+  padding: 0 15px;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.manualLoginToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: 2px solid #2b86e2;
+  border-radius: 8px;
+  background: transparent;
+  color: #2b86e2;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.manualLoginToggle:hover {
+  background: rgba(43, 134, 226, 0.1);
+  transform: translateY(-1px);
+}
+
+.manualLoginToggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toggleIcon {
+  font-size: 18px;
+}
+
+/* Manual Login Form */
+.manualLoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inputGroup {
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 15px;
+  color: #666;
+  font-size: 16px;
+  z-index: 2;
+}
+
+.manualInput {
+  width: 100%;
+  padding: 15px 45px 15px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.manualInput:focus {
+  outline: none;
+  border-color: #2b86e2;
+  box-shadow: 0 0 0 3px rgba(43, 134, 226, 0.1);
+}
+
+.manualInput:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.passwordToggle:hover {
+  color: #2b86e2;
+}
+
+.passwordToggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.manualLoginButton {
+  width: 100%;
+  padding: 15px 20px;
+  background: #2b86e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.manualLoginButton:hover {
+  background: #4f73f1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(43, 134, 226, 0.3);
+}
+
+.manualLoginButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.backToOptionsButton {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.backToOptionsButton:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.backToOptionsButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .error {
   color: #ff4444;
-  margin: 10px 0;
+  margin: 15px 0;
   font-size: 14px;
   text-align: center;
-  padding: 10px;
+  padding: 12px;
   background: #fff2f2;
   border-radius: 8px;
+  border: 1px solid #ffdddd;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 20%, 40%, 60%, 80%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-3px);
+  }
 }
 
 .termsSection {
   margin-top: 30px;
   font-size: 12px;
   color: #666;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .termsLinks {
@@ -92,9 +310,89 @@
   text-decoration: underline;
 }
 
+/* Loading States */
+.wrapper:has(.manualLoginButton:disabled) {
+  pointer-events: none;
+}
+
+.manualLoginButton:disabled::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  margin-left: 10px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
 @media (max-width: 480px) {
   .wrapper {
-      width: 90%;
-      padding: 20px;
+    width: 90%;
+    padding: 20px;
+    min-height: 400px;
+  }
+
+  .brandIcon {
+    font-size: 36px;
+  }
+
+  .brandSection h1 {
+    font-size: 24px;
+  }
+
+  .manualInput {
+    padding: 12px 40px 12px 40px;
+    font-size: 14px;
+  }
+
+  .manualLoginButton {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Focus Management */
+.manualLoginForm input:focus {
+  outline: none;
+}
+
+.manualLoginForm input:focus + .inputIcon {
+  color: #2b86e2;
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .manualLoginForm,
+  .error,
+  .termsSection {
+    animation: none;
+  }
+  
+  .manualLoginToggle:hover,
+  .manualLoginButton:hover {
+    transform: none;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .manualInput {
+    border-width: 3px;
+  }
+  
+  .manualLoginButton {
+    border: 2px solid #000;
+  }
+  
+  .error {
+    border-width: 2px;
   }
 }

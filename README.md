@@ -96,9 +96,16 @@ REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id
 REACT_APP_API_BASE_URL=https://bookhive-90e4e8826675.herokuapp.com
 ```
 
+**Note:** If you skip Google OAuth setup, you can still use manual login functionality.
+
 #### Step 5: Start the Development Server
 
 ```bash
+# For development with hot reloading
+npm run dev
+
+# For production testing (requires build first)
+npm run build
 npm start
 ```
 
